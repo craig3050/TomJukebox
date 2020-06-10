@@ -69,7 +69,9 @@ playlist_list = {
 ############################################Stuff for the buttons##################################################
 
 
-button = Button(4)
+skip_button = Button(4)
+play_button = Button(5, hold_time=2)
+shuffle_button = Button(6)
 
 ####################################################The main programme#############################################
 
@@ -150,7 +152,11 @@ def main():
                 sleep(0.1)  # any higher and it seems to miss button presses
 
                 #This is where the function buttons are located (number TBC)
-                button.when_pressed = media.next
+                skip_button.when_pressed = media.next
+                #play_button.when_pressed = media.pause #possibly set_pause
+                # play_button.when_held = media.stop
+                #shuffle_button.when_pressed = stop, break, new routine with all the songs shuffled
+
 
         except Exception as e:
             print(e)
