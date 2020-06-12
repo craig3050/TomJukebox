@@ -4,13 +4,14 @@ from mfrc522 import SimpleMFRC522
 from time import sleep
 from gpiozero import Button
 from datetime import datetime, timedelta
-import time
-import Adafruit_GPIO.SPI as SPI
+# import time
+# import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import subprocess
+# import subprocess
+# from signal import pause
 
 ###########################################Stuff for Display ##################################################
 
@@ -22,32 +23,32 @@ SPI_PORT = 0
 SPI_DEVICE = 0
 
 # 128x32 display with hardware I2C:
-disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
+jukebox_display = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 
 # Initialize library.
-disp.begin()
+jukebox_display.begin()
 
 # Clear display.
-disp.clear()
-disp.display()
+jukebox_display.clear()
+jukebox_display.display()
 
 # Create blank image for drawing.
 # Make sure to create image with mode '1' for 1-bit color.
-width = disp.width
-height = disp.height
-image = Image.new('1', (width, height))
+display_width = jukebox_display.width
+display_height = jukebox_display.height
+image = Image.new('1', (display_width, display_height))
 
 # Get drawing object to draw on image.
-draw = ImageDraw.Draw(image)
+jukebox_draw = ImageDraw.Draw(image)
 
 # Draw a black filled box to clear the image.
-draw.rectangle((0,0,width,height), outline=0, fill=0)
+jukebox_draw.rectangle((0, 0, display_width, display_height), outline=0, fill=0)
 
 # Draw some shapes.
 # First define some constants to allow easy resizing of shapes.
-padding = -2
-top = padding
-bottom = height-padding
+display_padding = -2
+display_top = display_padding
+display_bottom = display_height - display_padding
 # Move left to right keeping track of the current x position for drawing shapes.
 x = 0
 
@@ -69,9 +70,10 @@ playlist_list = {
 ############################################Stuff for the buttons##################################################
 
 
-skip_button = Button(4)
-play_button = Button(5, hold_time=2)
-shuffle_button = Button(6)
+#skip_button = Button(17)
+button = Button(4)
+# play_button = Button(4, hold_time=2)
+#shuffle_button = Button(27)
 
 ####################################################The main programme#############################################
 
@@ -122,6 +124,13 @@ def main():
 
             #While items are still playing it waits
             while str(media.get_state()) == "State.Playing":
+                #This is where the function buttons are located (number TBC)
+                #skip_button.when_pressed = media.next
+                #button.when_pressed = media.pause #possibly set_pause
+                #button.when_held = media.stop
+                #shuffle_button.when_pressed = stop, break, new routine with all the songs shuffled
+                button.when_pressed = media.stop
+
                 media_state = media.get_state()
                 media_file_path = media.get_media_player().get_media().get_mrl()
                 media_duration = media.get_media_player().get_media().get_duration()
@@ -140,22 +149,22 @@ def main():
                 print(f'Album = {media_album_name}')
                 print(f'Title = {media_song_name}')
 
-                draw.text((x, top), f'Artist = {media_artist_name}', font=font, fill=255)
-                draw.text((x, top + 8), f'Album = {media_album_name}', font=font, fill=255)
-                draw.text((x, top + 16), f'Title = {media_song_name}', font=font, fill=255)
-                draw.text((x, top + 25), f'Duration = {media_duration}', font=font, fill=255)
-
-                # Display image.
-                disp.image(image)
-                disp.display()
-
                 sleep(0.1)  # any higher and it seems to miss button presses
 
-                #This is where the function buttons are located (number TBC)
-                skip_button.when_pressed = media.next
-                #play_button.when_pressed = media.pause #possibly set_pause
-                # play_button.when_held = media.stop
-                #shuffle_button.when_pressed = stop, break, new routine with all the songs shuffled
+                button.when_pressed = media.next
+
+                jukebox_draw.text((x, display_top), f'Artist = {media_artist_name}', font=font, fill=255)
+                jukebox_draw.text((x, display_top + 8), f'Album = {media_album_name}', font=font, fill=255)
+                jukebox_draw.text((x, display_top + 16), f'Title = {media_song_name}', font=font, fill=255)
+                jukebox_draw.text((x, display_top + 25), f'Duration = {media_duration}', font=font, fill=255)
+
+                # Display image.
+                jukebox_display.image(image)
+                jukebox_display.display()
+
+
+
+
 
 
         except Exception as e:
