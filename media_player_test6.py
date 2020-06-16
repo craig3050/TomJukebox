@@ -4,30 +4,36 @@ from mfrc522 import SimpleMFRC522
 from time import sleep
 from gpiozero import Button
 from datetime import datetime, timedelta
-import Adafruit_SSD1306
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+import board
+import busio
+
+
+
 
 
 ###########################################Stuff for Display ##################################################
 
-# Raspberry Pi pin configuration:
-RST = None     # on the PiOLED this pin isnt used
-# Note the following are only used with SPI:
-DC = 23
-SPI_PORT = 0
-SPI_DEVICE = 0
+i2c = busio.I2C(board.SCL, board.SDA)
 
-# 128x32 display with hardware I2C:
-jukebox_display = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
-
-# Initialize library.
-jukebox_display.begin()
+import adafruit_ssd1306
+jukebox_display = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3d)
 
 # Clear display.
-jukebox_display.clear()
-jukebox_display.display()
+jukebox_display.fill(0)
+jukebox_display.show()
+
+# font = ImageFont.load_default()
+#
+# # Draw Some Text
+# text = "Hello World!"
+# (font_width, font_height) = font.getsize(text)
+# draw.text((oled.width//2 - font_width//2, oled.height//2 - font_height//2),
+#           text, font=font, fill=255)
+
+# # Display image
+# jukebox_display.image(image)
+# jukebox_display.show()
+
 
 # Create blank image for drawing.
 # Make sure to create image with mode '1' for 1-bit color.
@@ -88,10 +94,10 @@ def display_info(media_artist_name, media_album_name, media_song_name, media_dur
     jukebox_draw.text((x, display_top + 8), f'Album = {media_album_name}', font=font, fill=255)
     jukebox_draw.text((x, display_top + 16), f'Title = {media_song_name}', font=font, fill=255)
     jukebox_draw.text((x, display_top + 25), f'Duration = {media_duration}', font=font, fill=255)
-
+#
     # Display image.
     jukebox_display.image(image)
-    jukebox_display.display()
+    jukebox_display.show()
     print("Displaying information End")
 
 
