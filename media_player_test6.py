@@ -6,57 +6,22 @@ from gpiozero import Button
 from datetime import datetime, timedelta
 import board
 import busio
-
-
-
+from PIL import Image, ImageDraw, ImageFont
 
 
 ###########################################Stuff for Display ##################################################
-
 i2c = busio.I2C(board.SCL, board.SDA)
 
 import adafruit_ssd1306
-jukebox_display = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3d)
+jukebox_display = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
+
+# Load default font.
+font = ImageFont.load_default()
 
 # Clear display.
 jukebox_display.fill(0)
 jukebox_display.show()
 
-# font = ImageFont.load_default()
-#
-# # Draw Some Text
-# text = "Hello World!"
-# (font_width, font_height) = font.getsize(text)
-# draw.text((oled.width//2 - font_width//2, oled.height//2 - font_height//2),
-#           text, font=font, fill=255)
-
-# # Display image
-# jukebox_display.image(image)
-# jukebox_display.show()
-
-
-# Create blank image for drawing.
-# Make sure to create image with mode '1' for 1-bit color.
-display_width = jukebox_display.width
-display_height = jukebox_display.height
-image = Image.new('1', (display_width, display_height))
-
-# Get drawing object to draw on image.
-jukebox_draw = ImageDraw.Draw(image)
-
-# Draw a black filled box to clear the image.
-jukebox_draw.rectangle((0, 0, display_width, display_height), outline=0, fill=0)
-
-# Draw some shapes.
-# First define some constants to allow easy resizing of shapes.
-display_padding = -2
-display_top = display_padding
-display_bottom = display_height - display_padding
-# Move left to right keeping track of the current x position for drawing shapes.
-x = 0
-
-# Load default font.
-font = ImageFont.load_default()
 
 ###########################################Stuff for the card reader ##################################################
 reader = SimpleMFRC522()
@@ -75,7 +40,38 @@ shuffle_button = Button(27)
 
 ####################################################The main programme#############################################
 
+def welcome_message():
+    # Create blank image for drawing.
+    # Make sure to create image with mode '1' for 1-bit color.
+    image = Image.new("1", (jukebox_display.width, jukebox_display.height))
+
+    # Get drawing object to draw on image.
+    jukebox_draw = ImageDraw.Draw(image)
+
+    jukebox_draw.text((50, 0), "Jukebox", font=font, fill=255)
+    jukebox_draw.text((0, 20), "Please wait, ", font=font, fill=255)
+    jukebox_draw.text((0, 30), "loading data", font=font, fill=255)
+    jukebox_draw.text((0, 45), "This may take a while", font=font, fill=255)
+    jukebox_display.image(image)
+    jukebox_display.show()
+
+    sleep(1)
+
 def read_card():
+    # Clear display.
+    jukebox_display.fill(0)
+    jukebox_display.show()
+    image = Image.new('1', (jukebox_display.width, jukebox_display.height))
+
+    # Get drawing object to draw on image.
+    jukebox_draw = ImageDraw.Draw(image)
+
+    # Display image
+    jukebox_draw.text((45, 0), "Jukebox", font=font, fill=255)
+    jukebox_draw.text((20, 30), "Present a card", font=font, fill=255)
+    jukebox_display.image(image)
+    jukebox_display.show()
+
     try:
         print("Present a card")
         id, text = reader.read()
@@ -89,11 +85,20 @@ def read_card():
 
 
 def display_info(media_artist_name, media_album_name, media_song_name, media_duration):
+    # Clear display.
+    jukebox_display.fill(0)
+    jukebox_display.show()
+    image = Image.new('1', (jukebox_display.width, jukebox_display.height))
+
+    # Get drawing object to draw on image.
+    jukebox_draw = ImageDraw.Draw(image)
+
+    # Display image
     print("Displaying information Start")
-    jukebox_draw.text((x, display_top), f'Artist = {media_artist_name}', font=font, fill=255)
-    jukebox_draw.text((x, display_top + 8), f'Album = {media_album_name}', font=font, fill=255)
-    jukebox_draw.text((x, display_top + 16), f'Title = {media_song_name}', font=font, fill=255)
-    jukebox_draw.text((x, display_top + 25), f'Duration = {media_duration}', font=font, fill=255)
+    jukebox_draw.text((0, 0), f'Artist = {media_artist_name}', font=font, fill=255)
+    jukebox_draw.text((0, 15), f'Album = {media_album_name}', font=font, fill=255)
+    jukebox_draw.text((0, 30), f'Title = {media_song_name}', font=font, fill=255)
+    jukebox_draw.text((0, 45), f'Duration = {media_duration}', font=font, fill=255)
 #
     # Display image.
     jukebox_display.image(image)
@@ -103,6 +108,7 @@ def display_info(media_artist_name, media_album_name, media_song_name, media_dur
 
 def main():
     while True:
+        welcome_message()
         #Attempts to stop if anything is playing
         try:
             media.stop()
