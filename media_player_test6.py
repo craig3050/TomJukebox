@@ -1,18 +1,14 @@
 import vlc
-import RPi.GPIO as GPIO
-from mfrc522 import SimpleMFRC522
 from time import sleep
-from gpiozero import Button
 from datetime import datetime, timedelta
-import board
-import busio
-from PIL import Image, ImageDraw, ImageFont
-
 
 ###########################################Stuff for Display ##################################################
-i2c = busio.I2C(board.SCL, board.SDA)
-
+from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
+import board
+import busio
+
+i2c = busio.I2C(board.SCL, board.SDA)
 jukebox_display = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c, addr=0x3c)
 
 # Load default font.
@@ -22,8 +18,8 @@ font = ImageFont.load_default()
 jukebox_display.fill(0)
 jukebox_display.show()
 
-
 ###########################################Stuff for the card reader ##################################################
+from mfrc522 import SimpleMFRC522
 reader = SimpleMFRC522()
 
 instance = vlc.Instance('--aout=alsa')
@@ -34,12 +30,13 @@ playlist_list = {
 }
 
 ############################################Stuff for the buttons##################################################
+from gpiozero import Button
+import RPi.GPIO as GPIO
 skip_button = Button(17)
-play_button = Button(4, hold_time=2)
+play_button = Button(4, hold_time=1)
 shuffle_button = Button(27)
 
 ####################################################The main programme#############################################
-
 def welcome_message():
     # Create blank image for drawing.
     # Make sure to create image with mode '1' for 1-bit color.
@@ -56,6 +53,7 @@ def welcome_message():
     jukebox_display.show()
 
     sleep(1)
+
 
 def read_card():
     # Clear display.
@@ -78,7 +76,7 @@ def read_card():
         print(id)
         print(text)
     finally:
-        GPIO.cleanup()
+        print("Card has been read")
 
     text = str(text).strip()
     return text
@@ -99,7 +97,7 @@ def display_info(media_artist_name, media_album_name, media_song_name, media_dur
     jukebox_draw.text((0, 15), f'Album = {media_album_name}', font=font, fill=255)
     jukebox_draw.text((0, 30), f'Title = {media_song_name}', font=font, fill=255)
     jukebox_draw.text((0, 45), f'Duration = {media_duration}', font=font, fill=255)
-#
+
     # Display image.
     jukebox_display.image(image)
     jukebox_display.show()
@@ -136,11 +134,11 @@ def main():
 
             print("Playing Media")
             media.play()
-            sleep(1)
+            sleep(1) #This is required otherwise the item doesn't start playing before the loop breaks
             media_song_name_previous = "Default"
 
-            #While items are still playing it waits
-            while str(media.get_state()) == "State.Playing":
+            #While items are still playing, paused or still opening next track it waits
+            while str(media.get_state()) in {"State.Playing", "State.Paused", "State.Opening"}:
 
                 # Get information about the track playing
                 media_song_name = media.get_media_player().get_media().get_meta(vlc.Meta.Title) or "Unknown Song"
@@ -166,16 +164,19 @@ def main():
                     media_song_name_previous = media_song_name
                     display_info(media_artist_name, media_album_name, media_song_name, media_duration)
 
-                print("Loop")
                 sleep(0.1)  # any higher and it seems to miss button presses
 
                 play_button.when_pressed = media.pause
                 play_button.when_held = media.stop
                 skip_button.when_pressed = media.next
+                shuffle_button.when_pressed = media.stop
+
+            print(media.get_state())
 
         except Exception as e:
             print(e)
 
+    GPIO.cleanup()
 
 if __name__ == '__main__':
     main()
