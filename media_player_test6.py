@@ -26,8 +26,7 @@ reader = SimpleMFRC522()
 instance = vlc.Instance('--aout=alsa')
 
 import ast
-with open('song_list.txt') as f:
-    playlist_list = ast.literal_eval(f.read())
+
 
 # playlist_list = {
 #     "Song1": ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3"],
@@ -44,7 +43,6 @@ shuffle_button = Button(27)
 ####################################################Flags##########################################################
 shuffle_flag = 0
 card_currently_read = ""
-
 
 ####################################################The main programme#############################################
 def welcome_message():
@@ -92,6 +90,15 @@ def read_card():
     return text
 
 
+def card_read_to_return_file_list(text):
+    with open(f'/song_lists/{text}.txt') as f:
+        playlist_list = ast.literal_eval(f.read())
+        return_list = []
+        for item in playlist_list:
+            return_list.append(item)
+        return return_list
+
+
 def display_info(media_artist_name, media_album_name, media_song_name, media_duration):
     # Clear display.
     jukebox_display.fill(0)
@@ -113,9 +120,11 @@ def display_info(media_artist_name, media_album_name, media_song_name, media_dur
     jukebox_display.show()
     print("Displaying information End")
 
+
 def change_shuffle_flag():
     global shuffle_flag
     shuffle_flag = 1
+
 
 def main():
 
@@ -135,7 +144,7 @@ def main():
             # Reads the RFID card and returns a playlist name
             playlist_name = read_card()
             # Each playlist name corresponds to a dictionary entry with all the file paths in order
-            song_file_path_list = playlist_list[playlist_name]
+            song_file_path_list = card_read_to_return_file_list(playlist_name)
             print(song_file_path_list)
         else:
             song_file_path_list = random.sample(song_file_path_list, len(song_file_path_list))
@@ -200,6 +209,7 @@ def main():
             print(e)
 
     GPIO.cleanup()
+
 
 if __name__ == '__main__':
     main()
