@@ -25,10 +25,14 @@ reader = SimpleMFRC522()
 
 instance = vlc.Instance('--aout=alsa')
 
-playlist_list = {
-    "Song1": ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3"],
-    "Song2": ["5.mp3", "4.mp3", "3.mp3", "2.mp3", "1.mp3"],
-}
+import ast
+with open('song_list.txt') as f:
+    playlist_list = ast.literal_eval(f.read())
+
+# playlist_list = {
+#     "Song1": ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3"],
+#     "Song2": ["5.mp3", "4.mp3", "3.mp3", "2.mp3", "1.mp3"],
+# }
 
 ############################################Stuff for the buttons##################################################
 from gpiozero import Button
