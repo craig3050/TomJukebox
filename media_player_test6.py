@@ -1,6 +1,7 @@
 import vlc
 from time import sleep
 from datetime import datetime, timedelta
+import random
 
 ###########################################Stuff for Display ##################################################
 from PIL import Image, ImageDraw, ImageFont
@@ -25,8 +26,8 @@ reader = SimpleMFRC522()
 instance = vlc.Instance('--aout=alsa')
 
 playlist_list = {
-    "Song1": ["1.mp3", "2.mp3"],
-    "Song2": ["2.mp3", "1.mp3"],
+    "Song1": ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3"],
+    "Song2": ["5.mp3", "4.mp3", "3.mp3", "2.mp3", "1.mp3"],
 }
 
 ############################################Stuff for the buttons##################################################
@@ -35,6 +36,11 @@ import RPi.GPIO as GPIO
 skip_button = Button(17)
 play_button = Button(4, hold_time=1)
 shuffle_button = Button(27)
+
+####################################################Flags##########################################################
+shuffle_flag = 0
+card_currently_read = ""
+
 
 ####################################################The main programme#############################################
 def welcome_message():
@@ -103,8 +109,15 @@ def display_info(media_artist_name, media_album_name, media_song_name, media_dur
     jukebox_display.show()
     print("Displaying information End")
 
+def change_shuffle_flag():
+    global shuffle_flag
+    shuffle_flag = 1
 
 def main():
+
+    global shuffle_flag
+    global card_currently_read
+
     while True:
         welcome_message()
         #Attempts to stop if anything is playing
@@ -113,12 +126,17 @@ def main():
         except:
             print("Nothing playing right now")
 
-        #Reads the RFID card and returns a playlist name
-        playlist_name = read_card()
-
-        #Each playlist name corresponds to a dictionary entry with all the file paths in order
-        song_file_path_list = playlist_list[playlist_name]
-        print(song_file_path_list)
+        ##Checks if the shuffle button has been pressed first
+        if shuffle_flag == 0:
+            # Reads the RFID card and returns a playlist name
+            playlist_name = read_card()
+            # Each playlist name corresponds to a dictionary entry with all the file paths in order
+            song_file_path_list = playlist_list[playlist_name]
+            print(song_file_path_list)
+        else:
+            song_file_path_list = random.sample(song_file_path_list, len(song_file_path_list))
+            print(song_file_path_list)
+            shuffle_flag = 0
 
         #This is the main playing function
         try:
@@ -169,7 +187,8 @@ def main():
                 play_button.when_pressed = media.pause
                 play_button.when_held = media.stop
                 skip_button.when_pressed = media.next
-                shuffle_button.when_pressed = media.stop
+                shuffle_button.when_pressed = change_shuffle_flag
+                shuffle_button.when_released = media.stop
 
             print(media.get_state())
 
