@@ -2,6 +2,7 @@ import vlc
 from time import sleep
 from datetime import datetime, timedelta
 import random
+import csv
 
 ###########################################Stuff for Display ##################################################
 from PIL import Image, ImageDraw, ImageFont
@@ -91,35 +92,47 @@ def read_card():
 
 
 def card_read_to_return_file_list(text):
-    with open(f'/song_lists/{text}.txt') as f:
-        playlist_list = ast.literal_eval(f.read())
-        return_list = []
-        for item in playlist_list:
-            return_list.append(item)
-        return return_list
+    try:
+        with open(f'/home/pi/song_lists/{text}.csv', 'r', encoding='utf-8-sig') as f:
+            file_contents = csv.reader(f, delimiter=',')
+            # for row in file_contents:
+            #     print(row)
+            print("Adding to a playlist")
+            return_list = []
+            for item in file_contents:
+                print(item[0])
+                song_path = f'/home/pi/MusicFolder/{text}/{str(item[0])}'
+                print(song_path)
+                return_list.append(song_path)
+            print(return_list)
+            return return_list
+    except Exception as e:
+        print(e)
 
 
 def display_info(media_artist_name, media_album_name, media_song_name, media_duration):
-    # Clear display.
-    jukebox_display.fill(0)
-    jukebox_display.show()
-    image = Image.new('1', (jukebox_display.width, jukebox_display.height))
+    try:
+        # Clear display.
+        jukebox_display.fill(0)
+        jukebox_display.show()
+        image = Image.new('1', (jukebox_display.width, jukebox_display.height))
 
-    # Get drawing object to draw on image.
-    jukebox_draw = ImageDraw.Draw(image)
+        # Get drawing object to draw on image.
+        jukebox_draw = ImageDraw.Draw(image)
 
-    # Display image
-    print("Displaying information Start")
-    jukebox_draw.text((0, 0), f'Artist = {media_artist_name}', font=font, fill=255)
-    jukebox_draw.text((0, 15), f'Album = {media_album_name}', font=font, fill=255)
-    jukebox_draw.text((0, 30), f'Title = {media_song_name}', font=font, fill=255)
-    jukebox_draw.text((0, 45), f'Duration = {media_duration}', font=font, fill=255)
+        # Display image
+        print("Displaying information Start")
+        jukebox_draw.text((0, 0), f'Artist = {media_artist_name}', font=font, fill=255)
+        jukebox_draw.text((0, 15), f'Album = {media_album_name}', font=font, fill=255)
+        jukebox_draw.text((0, 30), f'Title = {media_song_name}', font=font, fill=255)
+        jukebox_draw.text((0, 45), f'Duration = {media_duration}', font=font, fill=255)
 
-    # Display image.
-    jukebox_display.image(image)
-    jukebox_display.show()
-    print("Displaying information End")
-
+        # Display image.
+        jukebox_display.image(image)
+        jukebox_display.show()
+        print("Displaying information End")
+    except Exception as e:
+        print(e)
 
 def change_shuffle_flag():
     global shuffle_flag
