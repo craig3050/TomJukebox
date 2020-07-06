@@ -30,7 +30,7 @@ python-apt==1.8.4.1
 python-pipeline==0.1.3+py3k
 python-vlc==3.0.10114
 pyusb==1.0.2
-pyxdg==0.25
+pyxdg==0.26
 requests==2.21.0
 rpi-ws281x==4.2.4
 RPi.GPIO==0.7.0
