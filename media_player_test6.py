@@ -3,6 +3,7 @@ from time import sleep
 from datetime import datetime, timedelta
 import random
 import csv
+import os
 
 ###########################################Stuff for Display ##################################################
 from PIL import Image, ImageDraw, ImageFont
@@ -93,19 +94,40 @@ def read_card():
 
 def card_read_to_return_file_list(text):
     try:
-        with open(f'/home/pi/song_lists/{text}.csv', 'r', encoding='utf-8-sig') as f:
-            file_contents = csv.reader(f, delimiter=',')
-            # for row in file_contents:
-            #     print(row)
-            print("Adding to a playlist")
-            return_list = []
-            for item in file_contents:
-                print(item[0])
-                song_path = f'/home/pi/MusicFolder/{text}/{str(item[0])}'
-                print(song_path)
-                return_list.append(song_path)
-            print(return_list)
+        if text == "shuffle_all":
+            path = '/home/pi/MusicFolder/'
+            files = []
+            # r=root, d=directories, f = files
+            for r, d, f in os.walk(path):
+                for file in f:
+                    if '.mp3' in file:
+                        files.append(os.path.join(r, file))
+            return_list = random.sample(files, len(files))
             return return_list
+        elif text == "shuffle_the_lot":
+            path = '/home/pi/'
+            files = []
+            # r=root, d=directories, f = files
+            for r, d, f in os.walk(path):
+                for file in f:
+                    if '.mp3' in file:
+                        files.append(os.path.join(r, file))
+            return_list = random.sample(files, len(files))
+            return return_list
+        else:
+            with open(f'/home/pi/song_lists/{text}.csv', 'r', encoding='utf-8-sig') as f:
+                file_contents = csv.reader(f, delimiter=',')
+                # for row in file_contents:
+                #     print(row)
+                print("Adding to a playlist")
+                return_list = []
+                for item in file_contents:
+                    print(item[0])
+                    song_path = f'/home/pi/MusicFolder/{text}/{str(item[0])}'
+                    print(song_path)
+                    return_list.append(song_path)
+                print(return_list)
+                return return_list
     except Exception as e:
         print(e)
 
