@@ -91,10 +91,25 @@ def read_card():
     text = str(text).strip()
     return text
 
+def display_thinking_dialogue():
+    # Clear display.
+    jukebox_display.fill(0)
+    jukebox_display.show()
+    image = Image.new('1', (jukebox_display.width, jukebox_display.height))
+
+    # Get drawing object to draw on image.
+    jukebox_draw = ImageDraw.Draw(image)
+
+    # Display image
+    jukebox_draw.text((20, 0), "Thinking...", font=font, fill=255)
+    jukebox_draw.text((20, 30), "(Hold Tight)", font=font, fill=255)
+    jukebox_display.image(image)
+    jukebox_display.show()
 
 def card_read_to_return_file_list(text):
     try:
         if text == "shuffle_all":
+            display_thinking_dialogue()
             path = '/home/pi/MusicFolder/'
             files = []
             # r=root, d=directories, f = files
@@ -105,6 +120,7 @@ def card_read_to_return_file_list(text):
             return_list = random.sample(files, len(files))
             return return_list
         elif text == "shuffle_the_lot":
+            display_thinking_dialogue()
             path = '/home/pi/'
             files = []
             # r=root, d=directories, f = files
@@ -182,6 +198,7 @@ def main():
             song_file_path_list = card_read_to_return_file_list(playlist_name)
             print(song_file_path_list)
         else:
+            display_thinking_dialogue()
             song_file_path_list = random.sample(song_file_path_list, len(song_file_path_list))
             print(song_file_path_list)
             shuffle_flag = 0
